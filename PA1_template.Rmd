@@ -5,17 +5,40 @@ output:
     keep_md: true
 ---
 
-## Loading libraries
+# Introduction
+This report aims to analysis the activity data provided by activity monitoring devices such as a Fitbit to find out if the activity pattern changes on a weekend from a week day.
+ 
+
+## Prerequisites
+
+The report is written in R Markdown utilizing the Lattice and dplyr packages. The versions are displayed below.
+
 ```{r}
 library(lattice)
 library(dplyr)
+
+sessionInfo()
 ```
 
-## Loading and preprocessing the data
+# Data
+The data is included with the github repository in the file `activity.zip`. The variables included in this dataset are:
+
+ * steps: Number of steps taking in a 5-minute interval (missing values are coded as NA)
+ * date: The date on which the measurement was taken in YYYY-MM-DD format
+ * interval: Identifier for the 5-minute interval in which measurement was taken
+
+The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset.
+
 ```{r}
 activities <- read.csv(unz("activity.zip", "activity.csv"), colClass=c("numeric", "Date" , "numeric"))
 ```
 
+A summary of the data:
+```{r}
+str(activities)
+```
+
+# Analysis
 
 ## What is mean total number of steps taken per day?
 <b>Calculate the total number of steps taken per day</b>
@@ -29,7 +52,7 @@ names(daily_step_count)[2] <- "count"
 <b>Make a histogram of the total number of steps taken each day</b>
 
 ```{r}
-hist(daily_step_count$count, xlab="Total steps per day", main="Total number of steps taken each day")
+hist(daily_step_count$count, xlab="Total steps per day", main="Total number of steps taken each day", breaks=10)
 ```
 
 <b>Calculate and report the mean and median of the total number of steps taken per day</b>
@@ -57,9 +80,11 @@ plot(fively_minute_step_mean$interval, fively_minute_step_mean$mean_steps, type 
 ```{r}
 max_number_of_step <- max(fively_minute_step_mean$mean_steps)
 time_with_max_number_of_steps <- fively_minute_step_mean[fively_minute_step_mean$mean_steps == max_number_of_step,]
+hours <- floor(time_with_max_number_of_steps$interval / 60)
+minutes <- ((time_with_max_number_of_steps$interval / 60) - hours) * 60
 ```
 
-The time period with the most number of steps is `r time_with_max_number_of_steps$interval`. 
+The time period with the most number of steps is `r format(time_with_max_number_of_steps$interval)` with `r format(time_with_max_number_of_steps$mean_steps)` steps. This five minute interval starts at `r hours`:`r minutes`.
 
 ## Imputing missing values
 
@@ -75,10 +100,14 @@ The dataset contains `r number_of_missing_step_values` missing step values.
 
 I'll be populating the missing values with the mean for the 5-minute interval. 
 
+
 <b>Create a new dataset that is equal to the original dataset but with the missing data filled in.</b>
+
+This works by merging the activities with the five minutely mean to provide every row with a default row for that day. Then mutating that to use the default when no step exists.
 ```{r}
 activities_with_default <- merge(activities, fively_minute_step_mean)
-activities_with_guessed_nas <- select(mutate(activities_with_default, steps =  ifelse(is.na(steps), mean_steps, steps)), interval, date, steps)
+activities_with_guessed_nas <- select(mutate(activities_with_default, steps =  ifelse(is.na(steps), mean_steps, steps)),
+                                      interval, date, steps)
 ```
 
 <b>Make a histogram of the total number of steps taken each day </b>
@@ -88,7 +117,7 @@ daily_step_count_no_nas <- aggregate(activities_with_guessed_nas$steps, list(act
 names(daily_step_count_no_nas)[1] <- "date"
 names(daily_step_count_no_nas)[2] <- "count"
 
-hist(daily_step_count_no_nas$count, xlab="Total steps per day", main="Total number of steps taken each day")
+hist(daily_step_count_no_nas$count, xlab="Total steps per day", main="Total number of steps taken each day", breaks=10)
 ```
 
 <b>Calculate and report the mean and median of the total number of steps taken per day</b>
@@ -98,8 +127,11 @@ mean_daily_steps_taken_no_nas <- mean(daily_step_count_no_nas$count)
 median_daily_steps_taken_no_nas <- median(daily_step_count_no_nas$count)
 ```
 
-The mean number of steps taken each day is `r format(mean_daily_steps_taken_no_nas)` and the median number of steps taken each day is `r format(median_daily_steps_taken_no_nas)`.
+The mean number of steps taken each day is `r format(mean_daily_steps_taken_no_nas)` 
+and the median number of steps taken each day is `r format(median_daily_steps_taken_no_nas)`.
 
+
+Mean and median values are higher after imputing missing data. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
