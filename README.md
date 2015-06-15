@@ -1,3 +1,9 @@
+## NOTE ON SOLUTION
+
+Sorry for pushing something after the end of the deadline. This push is only for the README.
+
+I've noticed noone else has used the `'r variable_name'` feature. This feature lets you output the value of an R variable in-line. I've made use of this during the "Reports" sections. Above will be the code to create the variables I wish to output, then in the report section I use this feature to add some "fuff" to the report as I think it is neater than the raw output.
+
 ## Introduction
 
 It is now possible to collect a large amount of data about personal
